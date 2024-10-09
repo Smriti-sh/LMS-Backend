@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const standard = require("../models/standard.model");
+const section = require("../models/section.model");
+
 const classSchema = new mongoose.Schema({
 
     classroom_code : {
