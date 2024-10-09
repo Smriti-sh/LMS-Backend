@@ -1,12 +1,12 @@
 const roles = require("../models/roles.model");
-const classes = require("../models/class.model");
+const classroom = require("../models/class.model");
 const school = require ("../models/school.model");
 
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
 
-    full_name : {
+    first_name : {
         type : String,
         required : true
     },
@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
         required : true
     },
     //standard + section
-    class : {
+    classroom : {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Class', 
         required : true

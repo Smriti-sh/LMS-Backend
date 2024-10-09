@@ -1,195 +1,121 @@
-const Users = require("../models/users.model");
-const Records = require("../models/records.model");
+const users = require("../models/users.model");
+const classes = require("../models/class.model");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { uploadBook } = require("./llm.controller");
 
-const getProducts = async (req, res) => {
+const getUsers = async (req, res) => {
   try {
     console.log("get req data", req);
 
-    let { limit, skip, sort } = req.query;
+    console.log("List of users", users);
 
-    limit = Number(limit);
-    skip = Number(skip);
-
-    //projection
-    const products = await Product.aggregate([
-      {
-        $project: {
-          bookName: 1,
-          authorName: 1,
-          totalPages: 1,
-        },
-      },
-      {
-        $sort: {
-          bookName: 1,
-        },
-      },
-      {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
-      },
-    ]);
-
-    const totalCount = await Product.countDocuments();
-
-    console.log("paginated data", products);
-
-    // res.status(200).json(products); //The paginated list of products that was sliced from the array.
-    res.json({ totalCount, products });
+    // res.status(200).json(products);
+    res.json({ users });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const getProduct = async (req, res) => {
+const getUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
-    res.status(200).json(product);
+    const user = await User.findById(id);
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Set up multer for file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "..", "uploads/pdf");
-
-    // Ensure directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    cb(null, uploadDir); // Store in 'uploads/pdf' folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-// File filter to only accept PDFs
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
-    cb(null, true); // Accept the file
-  } else {
-    cb(new Error("Only PDF files are allowed!"), false); // Reject the file
-  }
-};
-
-// Initialize multer
-const upload = multer({ storage, fileFilter });
-
-const createProduct = async (req, res) => {
+const createUser = async (req, res) => {
   try {
     // Validate form data
-    const { bookName, authorName } = req.body;
-    if (!bookName || !authorName) {
+    const { first_name,last_name, address,contact_no,father_name,mother_name,roles,school,classroom,dob } = req.body;
+    if (!first_name || !last_name || !address || !contact_no || !father_name || !mother_name || !roles || !school || !classroom || !dob) {
       return res
         .status(400)
-        .json({ message: "Book name and author name are required" });
+        .json({ message: "details are required" });
     }
 
     //testing for duplicate
     const exist = await Product.findOne(
-      { bookName: bookName },
+      { first_name: first_name },
+      { father_name: father_name },
       { id: 1, bookName: 1 }
     );
     console.log(exist, "exist");
     if (exist) {
-      return res.status(400).json({ message: "This book already exists." });
+      return res.status(400).json({ message: "An account already exist with this name." });
     }
 
-    // Handle file upload
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ message: "PDF file is required" });
-    }
-
-    // Read file contents as binary data (Buffer)
-    const filePath = file.path;
-    const fileData = fs.readFileSync(filePath); // Read file from local storage
-
-    const resp = await uploadBook({ filePath, bookName, authorName });
+    //const resp = await uploadBook({ filePath, bookName, authorName });
 
     // Create and save the product in MongoDB
-    const newProduct = new Product({
-      bookName,
-      authorName,
-      pdfBuffer: fileData, // Save file as binary data (Buffer) in MongoDB
-      pdfPath: filePath, // Save the file path where it's stored locally
-      totalPages: resp.totalPages,
+    const newUser = new User({
+      first_name,
+      middle_name,
+      last_name,
+      address,
+      contact_no,
+      father_name,
+      mother_name,
+      roles,
+      school,
+      classroom,
+      dob
     });
 
-    await newProduct.save();
+    await newUser.save();
 
     console.log(
       resp,
       " --------------------====================== resp ======================-------------------- "
     );
 
-    // TODO remove pdf from storage
-
-    // Synchronously delete a file
-    try {
-      fs.unlinkSync(filePath);
-      console.log("File deleted!");
-    } catch (err) {
-      // Handle specific error if any
-      console.error(err.message);
-    }
-    // localStorage.clear(fileData);
-
-    res.status(201).json(newProduct);
+    res.status(201).json(newUser);
   } catch (error) {
-    console.error("Error creating product:", error);
+    console.error("Error creating user:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-const updateProduct = async (req, res) => {
+const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByIdAndUpdate(id, req.body);
+    const user = await User.findByIdAndUpdate(id, req.body);
 
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
     }
 
-    const updatedProduct = await Product.findById(id);
-    res.status(200).json(updatedProduct);
+    const updatedUser = await User.findById(id);
+    res.status(200).json(updatedUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-const deleteProduct = async (req, res) => {
+const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByIdAndDelete(id);
+    const user = await User.findByIdAndDelete(id);
 
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Product deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = {
-  getProducts,
-  getProduct,
-  createProduct: [upload.single("pdf"), createProduct],
-  updateProduct,
-  deleteProduct,
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
 };
