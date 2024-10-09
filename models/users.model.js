@@ -29,16 +29,21 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    // Reference to the Roles schema
     roles : {
-        type : String,
-        required : true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Roles',  
+        required: true
     },
     school : {
-        type : String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'School', 
         required : true
     },
+    //standard + section
     class : {
-        type : String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class', 
         required : true
     },
     dob : {
