@@ -1,6 +1,6 @@
-const roles = require("../models/roles.model");
-const classroom = require("../models/class.model");
-const school = require ("../models/school.model");
+const roles = require("./roles.model");
+const classroom = require("./class.model");
+const school = require ("./school.model");
 
 const mongoose = require("mongoose");
 
@@ -56,4 +56,4 @@ const userSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('Users',userSchema);
+module.exports = mongoose.model('User',userSchema);

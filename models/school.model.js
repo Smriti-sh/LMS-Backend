@@ -21,12 +21,11 @@ const schoolSchema = new mongoose.Schema({
     level : {
         type : String,
         required : true
-    },
-    //to be calculated from classroom collection (I am still figuring out how)
-    no_of_classroom : {
-        type : String,
-        required : true
     }
+    //to be calculated from classroom collection (I am still figuring out how)
+    // no_of_classroom : {
+    //     type : Number
+    // }
 });
 
 module.exports = mongoose.model('School',schoolSchema);
